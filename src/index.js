@@ -1,3 +1,8 @@
+const { default: Rectangle } = require("./figures/rectangle");
+const {  default: Circle } = require("./figures/circle");
+const {  default: Triangle } = require("./figures/triangle");
+const {  default: Hexagon } = require("./figures/hexagon");
+
 const canvas = document.getElementById("cnvs");
 
 const gameState = {};
@@ -16,10 +21,30 @@ function draw(tFrame) {
     context.clearRect(0, 0, canvas.width, canvas.height)
 
     // draw
+    drawFigures(context);
+}
+
+function drawFigures(context) {
+    for (let fig of gameState.figures) {
+        fig.draw(context);
+    }
 }
 
 function update(tick) {
+    cleareFigures();
+    moveFigures();
+}
 
+function cleareFigures() {
+    if (gameState.figures.length > 0) {
+        gameState.figures = gameState.figures.filter(fig => fig.isAlive)
+    }
+}
+
+function moveFigures() {
+    for (let fig of gameState.figures) {
+        fig.move(canvas, gameState.figures);
+    }
 }
 
 function run(tFrame) {
@@ -47,6 +72,13 @@ function setup() {
     gameState.lastTick = performance.now()
     gameState.lastRender = gameState.lastTick
     gameState.tickLength = 15 //ms
+    gameState.figures = [];
+    // for (let i = 0; i < 2; ++i) {
+    //     gameState.figures.push(Rectangle.generate(canvas, "rect"+i));
+    // }
+    for (let i = 0; i < 5; ++i) {
+        gameState.figures.push(Triangle.generate(canvas, "rect"+i));
+    }
 
 }
 

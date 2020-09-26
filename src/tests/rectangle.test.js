@@ -1,4 +1,4 @@
-import Rectangle from './rectangle'
+import Rectangle from '../figures/rectangle'
 
 describe('Rectangle getters', () => {
     it('should calculate borders correctly', () => {
