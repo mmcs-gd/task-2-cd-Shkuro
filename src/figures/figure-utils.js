@@ -46,54 +46,32 @@ function circleWithCircle(c1, c2) {
 }
 
 function triangleWithTriangle(t1, t2) {
-    const pts = [];
-    pts.push(intersectLines(t1.edge12, t2.edge23));
-    pts.push(intersectLines(t1.edge12, t2.edge13));
-    pts.push(intersectLines(t1.edge23, t2.edge12));
-    pts.push(intersectLines(t1.edge23, t2.edge13));
-    pts.push(intersectLines(t1.edge13, t2.edge12));
-    pts.push(intersectLines(t1.edge13, t2.edge23));
-
-    for (const p of pts) {
-        if (t1.contains(p) && t2.contains(p)) {
+    for (const p of [t2.p1, t2.p2, t2.p3]) {
+        if (t1.contains(p)) {
             return true;
         }
     }
-    if (triangleContainsTriangle(t1, t2) ||
-        triangleContainsTriangle(t2, t1)) {
-            return true;
-        }
-        return false;
-}
-
-function triangleContainsTriangle(t1, t2) {
-    return t1.contains(t2.p1) &&
-        t1.contains(t2.p2) &&
-        t1.contains(t2.p3);
-}
-
-function hexagonWithHexagon(h1, h2) {
-    const pts = [];
-    pts.push(intersectLines(h1.edge12, h2.edge34));
-    pts.push(intersectLines(h1.edge12, h2.edge56));
-    pts.push(intersectLines(h1.edge23, h2.edge61));
-    pts.push(intersectLines(h1.edge23, h2.edge45));
-    pts.push(intersectLines(h1.edge34, h2.edge12));
-    pts.push(intersectLines(h1.edge34, h2.edge56));
-    pts.push(intersectLines(h1.edge45, h2.edge23));
-    pts.push(intersectLines(h1.edge45, h2.edge61));
-    pts.push(intersectLines(h1.edge56, h2.edge12));
-    pts.push(intersectLines(h1.edge56, h2.edge34));
-    pts.push(intersectLines(h1.edge61, h2.edge23));
-    pts.push(intersectLines(h1.edge61, h2.edge45));
-
-    for (const p of pts) {
-        if (h1.contains(p) && h2.contains(p)) {
+    for (const p of [t1.p1, t1.p2, t1.p3]) {
+        if (t2.contains(p)) {
             return true;
         }
     }
     return false;
+}
 
+function hexagonWithHexagon(h1, h2) {
+    for (const p of [h2.p1, h2.p2, h2.p3, h2.p4, h2.p5, h2.p6]) {
+        if (h1.contains(p)) {
+            return true;
+        }
+    }
+
+    for (const p of [h1.p1, h1.p2, h1.p3, h1.p4, h1.p5, h1.p6]) {
+        if (h2.contains(p)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function clamp(val, min, max) {

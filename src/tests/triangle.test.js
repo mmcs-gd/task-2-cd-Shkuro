@@ -18,6 +18,10 @@ describe('Triangle getters', () => {
         expect(t.p1).toEqual(p1);
         expect(t.p2).toEqual(p2);
         expect(t.p3).toEqual(p3);
+
+        expect(t.edge12).toEqual({p1, p2});
+        expect(t.edge23).toEqual({p1: p2, p2: p3});
+        expect(t.edge31).toEqual({p1: p3, p2: p1});
     })
 
     it("should calculate triangle properties correctly", () => {
@@ -122,7 +126,7 @@ describe("Triangle.intersects()", () => {
     })
 
     it('should return false if triangles are not intersected', () => {
-        const otherT = new Triangle(5, 5, 3);
+        const otherT = new Triangle(7, 7, 3);
         expect(t.intersects(otherT)).toBeFalsy();
     })
 })
@@ -140,7 +144,7 @@ describe('Triangle.simpleCollisionsCheck()', () => {
     })
 
     it('should not increase collisions if triangle are not intersected', () => {
-        const otherT = new Triangle(5, 5, 3);
+        const otherT = new Triangle(7, 7, 3);
         t.simpleCollisionsCheck([otherT]);
         expect(t.collisions).toBe(0);
     })  

@@ -111,6 +111,10 @@ export default class Hexagon {
         return this.collisions < 3;
     }
 
+    intersects(fig) {
+        return utils.intersects(this, fig);
+    }
+
     contains(point) {
         const center = { x: this.x, y: this.y };
         const t1 = utils.pointInTriangle(point, this.p1, this.p2, center);

@@ -68,8 +68,8 @@ export default class Triangle {
     get edge23() {
         return { p1: this.p2, p2: this.p3 };
     }
-    get edge13() {
-        return { p1: this.p1, p2: this.p3 };
+    get edge31() {
+        return { p1: this.p3, p2: this.p1 };
     }
     //#endregion
 
@@ -132,12 +132,7 @@ export default class Triangle {
             context.moveTo(this.p2.x, this.p2.y);
             for (const p of [this.p3, this.p1, this.p2]) {
                 context.lineTo(p.x, p.y);
-            }
-            
-            // context.lineTo(this.leftPoint.x, this.leftPoint.y);
-            // context.lineTo(this.rightPoint.x, this.rightPoint.y);
-            // context.lineTo(this.topPoint.x, this.topPoint.y);
-            
+            }    
             context.fill();
             context.strokeStyle = "black";
             context.lineWidth = 3;
