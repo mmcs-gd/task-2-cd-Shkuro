@@ -18,7 +18,6 @@ export default class Triangle {
         fig.id = id;
         fig.vx = vx;
         fig.vy = vy;
-        fig.type = utils.FigTypes.Triangle;
 
         return fig;
     }
@@ -32,6 +31,7 @@ export default class Triangle {
 
         this.collisions = 0;
         this.colors = colors;
+        this.type = utils.FigTypes.Triangle;
     }
 
     get side() {
@@ -47,18 +47,31 @@ export default class Triangle {
     }
 
     //#region points
-    get topPoint() {
-        return { x: this.x, y: this.y - this.r };
-    }
-
-    get leftPoint() {
+    // left point
+    get p1() {
         return { x: this.x - this.r, y: this.y + this.smallR };
     }
-
-    get rightPoint() {
+    // top point
+    get p2() {
+        return { x: this.x, y: this.y - this.r };
+    }
+    // right point
+    get p3() {
         return { x: this.x + this.r, y: this.y + this.smallR };
     }
     //#endregion points
+
+    //#region edges
+    get edge12() {
+        return { p1: this.p1, p2: this.p2 };
+    }
+    get edge23() {
+        return { p1: this.p2, p2: this.p3 };
+    }
+    get edge13() {
+        return { p1: this.p1, p2: this.p3 };
+    }
+    //#endregion
 
     get left() {
         return this.x - this.r;
@@ -80,19 +93,23 @@ export default class Triangle {
         return this.collisions < 3;
     }
 
-    contains(point) {
-        return utils.pointInTriangle(point, this.tioPoint, this.rightPoint, this.leftPoint);
+    intersects(fig) {
+        return utils.intersects(this, fig);
     }
 
-    simpleCollisionCheck(figures) {
+    contains(point) {
+        return utils.pointInTriangle(point, this.p2, this.p3, this.p1);
+    }
+
+    simpleCollisionsCheck(figures) {
         for (const fig of figures) {
             if (fig.isAlive && fig !== this && utils.intersects(this, fig)) {
-                console.log({ this: JSON.stringify(this), fig: JSON.stringify(fig)})
+                // console.log({ this: JSON.stringify(this), fig: JSON.stringify(fig)})
                 this.collisions += 1;
 
                 this.vx *= -1;
                 this.vy *= -1;
-                console.log({ this: JSON.stringify(this), fig: JSON.stringify(fig)})
+                // console.log({ this: JSON.stringify(this), fig: JSON.stringify(fig)})
                 console.log("")
             }
         }
@@ -101,7 +118,7 @@ export default class Triangle {
     move(canvas, figures) {
         if (this.isAlive) {
             utils.checkWalls(this, canvas);
-            this.simpleCollisionCheck(figures);
+            this.simpleCollisionsCheck(figures);
 
             this.x += this.vx;
             this.y += this.vy;
@@ -112,8 +129,8 @@ export default class Triangle {
         if (this.isAlive) {
             context.beginPath();
             context.fillStyle = this.colors[this.collisions];
-            context.moveTo(this.topPoint.x, this.topPoint.y);
-            for (const p of [this.rightPoint, this.leftPoint, this.topPoint]) {
+            context.moveTo(this.p2.x, this.p2.y);
+            for (const p of [this.p3, this.p1, this.p2]) {
                 context.lineTo(p.x, p.y);
             }
             

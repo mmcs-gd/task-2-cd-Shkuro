@@ -76,10 +76,9 @@ function setup() {
     // for (let i = 0; i < 2; ++i) {
     //     gameState.figures.push(Rectangle.generate(canvas, "rect"+i));
     // }
-    for (let i = 0; i < 5; ++i) {
-        gameState.figures.push(Triangle.generate(canvas, "rect"+i));
+    for (let i = 0; i < 15; ++i) {
+        gameState.figures.push(Hexagon.generate(canvas, "rect"+i));
     }
-
 }
 
 setup();

@@ -41,29 +41,59 @@ function rectWithRect(r1, r2) {
 function circleWithCircle(c1, c2) {
     var dx = c1.x - c2.x;
     var dy = c1.y - c2.y;
-    var distance = Math.sqrt(dx*dx + dy*dy);
+    var distance = Math.sqrt(dx * dx + dy * dy);
     return (distance < c1.r + c2.r);
-    //#region physics
-    // const dist = Math.sqrt((c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y));
-    // const maxR = Math.max(c1.r, c2.r);
-    // if ((dist < maxR && dist < c1.r + c2.r)
-    //     || (dist < maxR && dist === c1.r + c2.r)
-    //     || (dist >= maxR && c1.r + dist === c2.r)
-    //     || (dist > maxR && c2.r + dist === c1.r)) {
-    //     return true;
-    // }
-    // return false;
-    //#endregion
 }
 
 function triangleWithTriangle(t1, t2) {
-    // TODO
-    return false;
+    const pts = [];
+    pts.push(intersectLines(t1.edge12, t2.edge23));
+    pts.push(intersectLines(t1.edge12, t2.edge13));
+    pts.push(intersectLines(t1.edge23, t2.edge12));
+    pts.push(intersectLines(t1.edge23, t2.edge13));
+    pts.push(intersectLines(t1.edge13, t2.edge12));
+    pts.push(intersectLines(t1.edge13, t2.edge23));
+
+    for (const p of pts) {
+        if (t1.contains(p) && t2.contains(p)) {
+            return true;
+        }
+    }
+    if (triangleContainsTriangle(t1, t2) ||
+        triangleContainsTriangle(t2, t1)) {
+            return true;
+        }
+        return false;
+}
+
+function triangleContainsTriangle(t1, t2) {
+    return t1.contains(t2.p1) &&
+        t1.contains(t2.p2) &&
+        t1.contains(t2.p3);
 }
 
 function hexagonWithHexagon(h1, h2) {
-    // TODO
+    const pts = [];
+    pts.push(intersectLines(h1.edge12, h2.edge34));
+    pts.push(intersectLines(h1.edge12, h2.edge56));
+    pts.push(intersectLines(h1.edge23, h2.edge61));
+    pts.push(intersectLines(h1.edge23, h2.edge45));
+    pts.push(intersectLines(h1.edge34, h2.edge12));
+    pts.push(intersectLines(h1.edge34, h2.edge56));
+    pts.push(intersectLines(h1.edge45, h2.edge23));
+    pts.push(intersectLines(h1.edge45, h2.edge61));
+    pts.push(intersectLines(h1.edge56, h2.edge12));
+    pts.push(intersectLines(h1.edge56, h2.edge34));
+    pts.push(intersectLines(h1.edge61, h2.edge23));
+    pts.push(intersectLines(h1.edge61, h2.edge45));
+
+    for (const p of pts) {
+        if (h1.contains(p) && h2.contains(p)) {
+            return true;
+        }
+    }
     return false;
+
 }
 
 function clamp(val, min, max) {
@@ -77,13 +107,13 @@ function rectWithCircle(r, c) {
     // Find the closets point to the circle within the rect
     let closestX = clamp(c.x, r.x, r.x + r.w);
     let closestY = clamp(c.y, r.y, r.y + r.h);
-    
+
     // calc the distance between the circle's center and this closest point
     let dx = c.x - closestX;
     let dy = c.y - closestY;
 
     // if the distance is less than the circle's radius, an intersection occurs
-    return (dx*dx + dy*dy) < (c.r * c.r);
+    return (dx * dx + dy * dy) < (c.r * c.r);
 }
 
 function rectWithTriangle(r, t) {
@@ -192,4 +222,48 @@ export function pointInTriangle(pt, v1, v2, v3) {
     const has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
 
     return !(has_neg && has_pos);
+}
+
+export function pointInHexagon(pt, h) {
+    let x = Math.abs(pt.x - h.x);
+    let y = Math.abs(pt.y - h.y);
+
+    let p0 = { x: h.x, y: h.y };
+    let p1 = h.p1;
+    let p2 = h.p2;
+    let p3 = { x: h.p2.x, y: h.y };
+
+    let p_angle_01 = (p0.x - x) * (p1.y - y) - (p1.x - x) * (p0.y - y);
+    let p_angle_20 = (p2.x - x) * (p0.y - y) - (p0.x - x) * (p2.y - y);
+    let p_angle_03 = (p0.x - x) * (p3.y - y) - (p3.x - x) * (p0.y - y);
+    let p_angle_12 = (p1.x - x) * (p2.y - y) - (p2.x - x) * (p1.y - y);
+    let p_angle_32 = (p3.x - x) * (p2.y - y) - (p2.x - x) * (p3.y - y);
+
+    let is_inside_1 = (p_angle_01 * p_angle_12 >= 0) && (p_angle_12 * p_angle_20 >= 0);
+    let is_inside_2 = (p_angle_03 * p_angle_32 >= 0) && (p_angle_32 * p_angle_20 >= 0);
+
+    return is_inside_1 || is_inside_2;
+}
+
+export function intersectLines(l1, l2) {
+    return linesIntersection(l1.p1, l1.p2, l2.p1, l2.p2);
+}
+
+export function linesIntersection(p1, p2, p3, p4) {
+    const a1 = p2.y - p1.y;
+    const b1 = p1.x - p2.x;
+    const c1 = a1 * p1.x + b1 * p1.y;
+
+    const a2 = p4.y - p3.y;
+    const b2 = p3.x - p4.x;
+    const c2 = a2 * p3.x + b2 * p3.y;
+
+    const det = a1 * b2 - a2 * b1;
+    if (det === 0) {
+        return null;
+    } else {
+        let x = (b2 * c1 - b1 * c2) / det;
+        let y = (a1 * c2 - a2 * c1) / det;
+        return { x, y };
+    }
 }

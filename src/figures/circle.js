@@ -18,7 +18,6 @@ export default class Circle {
         fig.id = id;
         fig.vx = vx;
         fig.vy = vy;
-        fig.type = utils.FigTypes.Circle;
 
         return fig;
     }
@@ -30,6 +29,7 @@ export default class Circle {
 
         this.colors = colors;
         this.collisions = 0;
+        this.type = utils.FigTypes.Circle;
     }
 
     get isAlive() {
@@ -52,8 +52,12 @@ export default class Circle {
         return this.y + this.r
     }
 
+    intersects(fig) {
+        return utils.intersects(this, fig);
+    }
+
     contains(point) {
-        return ((this.x - point.x) * (this.x - point.x) + (this.y - point.y) * (this.y - point.y)) < this.r * this.r;
+        return ((this.x - point.x) * (this.x - point.x) + (this.y - point.y) * (this.y - point.y)) <= this.r * this.r;
     }
 
     simpleCollisionsCheck(figures) {
@@ -68,11 +72,13 @@ export default class Circle {
     }
 
     move(canvas, figures) {
-        utils.checkWalls(this, canvas);
-        this.simpleCollisionsCheck(figures);
+        if (this.isAlive) {
+            utils.checkWalls(this, canvas);
+            this.simpleCollisionsCheck(figures);
 
-        this.x += this.vx;
-        this.y += this.vy;
+            this.x += this.vx;
+            this.y += this.vy;
+        }
     }
 
     draw(context) {

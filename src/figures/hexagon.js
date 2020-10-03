@@ -18,7 +18,6 @@ export default class Hexagon {
         fig.id = id;
         fig.vx = vx;
         fig.vy = vy;
-        fig.type = utils.FigTypes.Hexagon;
 
         return fig;
     }
@@ -32,6 +31,7 @@ export default class Hexagon {
 
         this.collisions = 0;
         this.colors = colors;
+        this.type = utils.FigTypes.Hexagon;
     }
 
     get side() {
@@ -70,6 +70,27 @@ export default class Hexagon {
     }
     //#endregion
 
+    //#region edges
+    get edge12() {
+        return { p1: this.p1, p2: this.p2 };
+    }
+    get edge23() {
+        return { p1: this.p2, p2: this.p3 };
+    }
+    get edge34() {
+        return { p1: this.p3, p2: this.p4 };
+    }
+    get edge45() {
+        return { p1: this.p4, p2: this.p5 };
+    }
+    get edge56() {
+        return { p1: this.p5, p2: this.p6 };
+    }
+    get edge61() {
+        return { p1: this.p6, p2: this.p1 };
+    }
+    //#endregion
+
     get left() {
         return this.x - this.smallR;
     }
@@ -99,9 +120,10 @@ export default class Hexagon {
         const t5 = utils.pointInTriangle(point, this.p5, this.p6, center);
         const t6 = utils.pointInTriangle(point, this.p6, this.p1, center);
         return t1 || t2 || t3 || t4 || t5 || t6;
+        // return utils.pointInHexagon(point, this);
     }
 
-    simpleCollisionCheck(figures) {
+    simpleCollisionsCheck(figures) {
         for (const fig of figures) {
             if (fig.isAlive && fig !== this && utils.intersects(this, fig)) {
                 this.collisions += 1;
@@ -115,7 +137,7 @@ export default class Hexagon {
     move(canvas, figures) {
         if (this.isAlive) {
             utils.checkWalls(this, canvas);
-            this.simpleCollisionCheck(figures);
+            this.simpleCollisionsCheck(figures);
 
             this.x += this.vx;
             this.y += this.vy;

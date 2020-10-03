@@ -1,4 +1,4 @@
-import Rectangle from './rectangle'
+import Rectangle from './figures/rectangle'
 import QuadTree from './quad-tree'
 
 describe('QuadTree', () => {

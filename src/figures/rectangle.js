@@ -21,7 +21,6 @@ export default class Rectangle {
         fig.id = id;
         fig.vx = vx;
         fig.vy = vy;
-        fig.type = utils.FigTypes.Rect;
 
         return fig;
     }
@@ -34,6 +33,7 @@ export default class Rectangle {
 
         this.collisions = 0;
         this.colors = colors;
+        this.type = utils.FigTypes.Rect;
     }
 
     get left() {
@@ -63,19 +63,17 @@ export default class Rectangle {
             point.y < this.y + this.h)
     }
 
-    simpleCollisionCheck(figures) {
+    intersects(rect) {
+        return utils.intersects(this, rect);
+    }
+
+    simpleCollisionsCheck(figures) {
         for (let fig of figures) {
             if (fig.isAlive && fig !== this && utils.intersects(this, fig)) {
                 console.log("collide", {this: JSON.stringify(this), fig: JSON.stringify(fig)})
                 
                 this.collisions += 1;
-                // let angle = Math.atan(Math.abs(this.vy) / Math.abs(this.vx));
-                // const total = Math.abs(this.vy) / Math.sin(angle);
-                // const tmpVx = this.vx + fig.vx;
-                // const tmpVy = this.vy + fig.vy;
-                // angle = Math.atan(Math.abs(tmpVy) / Math.abs(tmpVx));
-                // this.vx = total * Math.cos(angle) * Math.sign(tmpVx);
-                // this.vy = total * Math.sin(angle) * Math.sign(tmpVy);
+
                 this.vx *= -1;
                 this.vy *= -1;
             }
@@ -85,7 +83,7 @@ export default class Rectangle {
     move(canvas, figures) {
         if (this.isAlive) {
             utils.checkWalls(this, canvas);
-            this.simpleCollisionCheck(figures);
+            this.simpleCollisionsCheck(figures);
 
             this.x += this.vx;
             this.y += this.vy;
