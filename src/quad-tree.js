@@ -1,6 +1,8 @@
 import Rectangle from './figures/rectangle';
 
 export default class QuadTree {
+    // at the beginning boundary is the whole canvas
+    // capacity is maximum points which tree can have
     constructor(boundary, capacity = 4) {
         if (!boundary) {
             throw TypeError('boundary is null or undefined')
@@ -18,22 +20,71 @@ export default class QuadTree {
     }
 
     insert(point) {
-        return true
+        if (!this._boundary.contains(point)) {
+            return
+        }
+        if (this._points.length < this._capacity) {
+            this._points.push(point);
+            return
+        }
+
+        if (!this._hasChildren) {
+            this._subdivide();
+        }
+
+        this._children.forEach(child => child.insert(point));
     }
 
     get length() {
         let count = this._points.length
         if (this._hasChildren) {
-            // handle childrens somehow
+            for (const child of this._children) {
+                count += child.length;
+            }
         }
         return count
     }
 
+    // find points in given rect
     queryRange(rect, found = []) {
+        const { _boundary: bound, _points: pts, _children: children } = this;
+        // if (found.length > 0) {
+        //     console.log("query", { rect, found })
+        // }
+        // console.log("rect", rect)
+        // console.log("found", rect)
+        
+        if (!rect.intersects(bound)) {
+            return found;
+        }
+
+        for (const p of pts) {
+            if (rect.contains(p)) {
+                // console.log("contains point", p);
+                found.push(p);
+            }
+        }
+
+        if (this._hasChildren) {
+            children.forEach(child => child.queryRange(rect, found));
+        }
+
         return found
     }
 
     _subdivide() {
+        const { x, y, w, h } = this._boundary;
+        const quadCoords = [
+            { x, y },
+            { x: x + w / 2, y },
+            { x, y: y + h / 2 },
+            { x: x + w / 2, y: y + h / 2 }
+        ];
+        this._children = quadCoords.map(({x, y}) => {
+            const r = new Rectangle(x, y, w/2, h/2);
+            return new QuadTree(r, this._capacity);
+        })
+        this._hasChildren = true;
     }
 
     clear() {
