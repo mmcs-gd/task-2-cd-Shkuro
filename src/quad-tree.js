@@ -1,4 +1,11 @@
 import Rectangle from './figures/rectangle';
+export class Point {
+    constructor(x, y, figure) {
+        this.x = x;
+        this.y = y;
+        this.figure = figure;
+    }
+}
 
 export default class QuadTree {
     // at the beginning boundary is the whole canvas
@@ -45,8 +52,8 @@ export default class QuadTree {
         return count
     }
 
-    // find points in given rect
-    queryRange(rect, found = []) {
+    // find points in given circle range
+    queryRange(range, found = []) {
         const { _boundary: bound, _points: pts, _children: children } = this;
         // if (found.length > 0) {
         //     console.log("query", { rect, found })
@@ -54,19 +61,19 @@ export default class QuadTree {
         // console.log("rect", rect)
         // console.log("found", rect)
         
-        if (!rect.intersects(bound)) {
+        if (!range.intersects(bound)) {
             return found;
         }
 
         for (const p of pts) {
-            if (rect.contains(p)) {
+            if (range.contains(p)) {
                 // console.log("contains point", p);
                 found.push(p);
             }
         }
 
         if (this._hasChildren) {
-            children.forEach(child => child.queryRange(rect, found));
+            children.forEach(child => child.queryRange(range, found));
         }
 
         return found

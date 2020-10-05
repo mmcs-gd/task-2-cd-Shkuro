@@ -25,14 +25,12 @@ export default class Rectangle {
         return fig;
     }
 
-    constructor(x, y, w, h, colors = ["green", "yellow", "red"]) {
+    constructor(x, y, w, h) {
         this.x = x;
         this.y = y;
         this.w = w;
         this.h = h;
 
-        this.collisions = 0;
-        this.colors = colors;
         this.type = utils.FigTypes.Rect;
     }
 
@@ -85,8 +83,8 @@ export default class Rectangle {
             utils.checkWalls(this, canvas);
             this.simpleCollisionsCheck(figures);
 
-            this.x += this.vx;
-            this.y += this.vy;
+            // this.x += this.vx;
+            // this.y += this.vy;
         }
     }
 

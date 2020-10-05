@@ -1,10 +1,9 @@
-const { default: Rectangle } = require("./figures/rectangle");
-const {  default: Circle } = require("./figures/circle");
-const {  default: Triangle } = require("./figures/triangle");
-const {  default: Hexagon } = require("./figures/hexagon");
+import Rectangle from './figures/rectangle';
+import * as utils from './figures/figure-utils';
+import QuadTree, { Point } from './quad-tree';
 
 const canvas = document.getElementById("cnvs");
-
+const counter = document.getElementById("counter");
 const gameState = {};
 
 function queueUpdates(numTicks) {
@@ -31,8 +30,15 @@ function drawFigures(context) {
 }
 
 function update(tick) {
-    cleareFigures();
-    moveFigures();
+    counter.innerText = gameState.figures.length;
+
+    const boundary = new Rectangle(0, 0, canvas.width, canvas.height);
+    const tree = new QuadTree(boundary);
+    gameState.figures.forEach(f => tree.insert(new Point(f.x, f.y, f)));
+    moveFigures(tree);
+
+    // moveFigures();
+
 }
 
 function cleareFigures() {
@@ -41,9 +47,24 @@ function cleareFigures() {
     }
 }
 
-function moveFigures() {
+function moveFigures(tree) {
+    // for (let fig of gameState.figures) {
+    //     fig.simpleCollisionsCheck(gameState.figures);
+    // }
     for (let fig of gameState.figures) {
-        fig.move(canvas, gameState.figures);
+        utils.checkWalls(fig, canvas);
+        if (tree) {
+            utils.checkCollisionsWithTree(fig, tree);
+        } else {
+            utils.checkCollisionsWithFigures(fig, gameState.figures);
+        }
+        // fig.move(canvas, gameState.figures, tree);
+    }
+    cleareFigures();
+    for (let fig of gameState.figures) {
+        fig.x += fig.vx;
+        fig.y += fig.vy;
+        
     }
 }
 
@@ -73,11 +94,23 @@ function setup() {
     gameState.lastRender = gameState.lastTick
     gameState.tickLength = 15 //ms
     gameState.figures = [];
-    // for (let i = 0; i < 2; ++i) {
-    //     gameState.figures.push(Rectangle.generate(canvas, "rect"+i));
-    // }
-    for (let i = 0; i < 15; ++i) {
-        gameState.figures.push(Hexagon.generate(canvas, "rect"+i));
+
+    const settings = {
+        minW: canvas.width / 300,
+        maxW: canvas.width / 100,
+        minH: canvas.height / 300,
+        maxH: canvas.height / 100
+    };
+
+    for (let i = 0; i < 600; ++i) {
+        const r = Math.random();
+        if (r < 0.3) {
+            gameState.figures.push(utils.generateFigure(canvas, settings, utils.FigTypes.Circle, 0.5));
+        } else if (r < 0.6) {
+            gameState.figures.push(utils.generateFigure(canvas, settings, utils.FigTypes.Triangle, 0.5));
+        } else {
+            gameState.figures.push(utils.generateFigure(canvas, settings, utils.FigTypes.Circle, 0.5));
+        }
     }
 }
 

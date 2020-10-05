@@ -1,28 +1,27 @@
+import Circle from './circle';
 import * as utils from './figure-utils';
+import Rectangle from './rectangle';
 
 export default class Hexagon {
-    static generate({width, height}, id) {
-        const minR = width / 30;
-        const maxR = width / 20;
+    static generate({ width, height }, { minW, maxW, minH, maxH }, speed = 1) {
+        const minR = Math.min(minW, minH);
+        const maxR = Math.max(maxW, maxH);
         const r = minR + Math.random() * (maxR - minR);
 
         const x = Math.random() * (width - maxR);
         const y = Math.random() * (height - maxR);
 
-        const minV = 2;
-        const maxV = 2;
-        const vx = minV + Math.random() * (maxV - minV);
-        const vy = minV + Math.random() * (maxV - minV);
+        const vx = Math.random() > 0.5 ? speed : -speed;
+        const vy = Math.random() > 0.5 ? speed : -speed;
 
         const fig = new Hexagon(x, y, r);
-        fig.id = id;
         fig.vx = vx;
         fig.vy = vy;
 
         return fig;
     }
 
-     // (x,y) - center of the circumscribed circle
+    // (x,y) - center of the circumscribed circle
     // r - radius of the circumscribed circle
     constructor(x, y, r, colors = ["green", "yellow", "red"]) {
         this.x = x;
@@ -54,7 +53,7 @@ export default class Hexagon {
     }
 
     get p3() {
-        return { x: this.x + this.smallR, y: this.y + this.r / 2  };
+        return { x: this.x + this.smallR, y: this.y + this.r / 2 };
     }
 
     get p4() {
@@ -62,11 +61,11 @@ export default class Hexagon {
     }
 
     get p5() {
-        return { x: this.x - this.smallR, y: this.y + this.r / 2  };
+        return { x: this.x - this.smallR, y: this.y + this.r / 2 };
     }
 
     get p6() {
-        return { x: this.x - this.smallR, y: this.y - this.r / 2  };
+        return { x: this.x - this.smallR, y: this.y - this.r / 2 };
     }
     //#endregion
 
@@ -115,37 +114,58 @@ export default class Hexagon {
         return utils.intersects(this, fig);
     }
 
+    isVertex(point) {
+        return utils.pointsAreEqual(this.p1, point) ||
+            utils.pointsAreEqual(this.p2, point) ||
+            utils.pointsAreEqual(this.p3, point) ||
+            utils.pointsAreEqual(this.p4, point) ||
+            utils.pointsAreEqual(this.p5, point) ||
+            utils.pointsAreEqual(this.p6, point);
+    }
+
+    classify(point, v1, v2) {
+        const a = { x: v2.x - v1.x, y: v2.y - v1.y };
+        const b = { x: point.x - v1.x, y: point.y - v1.y };
+        const res = a.x * b.y - b.x * a.y;
+        if (res < 0) {
+            return false;
+        }
+        if (res > 0) {
+            return true;
+        }
+        if (a.x * b.x < 0 ||
+            a.y * b.y < 0 ||
+            Math.sqrt(a.x * a.x + a.y * a.y) < Math.sqrt(b.x * b.x + b.y * b.y)) {
+            return false;
+        }
+        return true;
+    }
+
     contains(point) {
-        const center = { x: this.x, y: this.y };
-        const t1 = utils.pointInTriangle(point, this.p1, this.p2, center);
-        const t2 = utils.pointInTriangle(point, this.p2, this.p3, center);
-        const t3 = utils.pointInTriangle(point, this.p3, this.p4, center);
-        const t4 = utils.pointInTriangle(point, this.p4, this.p5, center);
-        const t5 = utils.pointInTriangle(point, this.p5, this.p6, center);
-        const t6 = utils.pointInTriangle(point, this.p6, this.p1, center);
-        return t1 || t2 || t3 || t4 || t5 || t6;
-        // return utils.pointInHexagon(point, this);
+        return this.isVertex(point) ||
+            this.classify(point, this.p1, this.p2) &&
+            this.classify(point, this.p2, this.p3) &&
+            this.classify(point, this.p3, this.p4) &&
+            this.classify(point, this.p5, this.p6) &&
+            this.classify(point, this.p6, this.p1);
     }
 
-    simpleCollisionsCheck(figures) {
-        for (const fig of figures) {
-            if (fig.isAlive && fig !== this && utils.intersects(this, fig)) {
-                this.collisions += 1;
-
-                this.vx *= -1;
-                this.vy *= -1;
-            }
-        }
+    isFullyInsideRect(rect) {
+        return rect.contains(this.p1) &&
+            rect.contains(this.p2) &&
+            rect.contains(this.p3) &&
+            rect.contains(this.p4) &&
+            rect.contains(this.p5) &&
+            rect.contains(this.p6);
     }
 
-    move(canvas, figures) {
-        if (this.isAlive) {
-            utils.checkWalls(this, canvas);
-            this.simpleCollisionsCheck(figures);
+    range() {
+        return new Circle(this.x, this.y, this.r * 3);
+    }
 
-            this.x += this.vx;
-            this.y += this.vy;
-        }
+    move() {
+        this.x += this.vx;
+        this.y += this.vy;
     }
 
     draw(context) {
@@ -160,11 +180,6 @@ export default class Hexagon {
             context.lineTo(this.p5.x, this.p5.y);
             context.lineTo(this.p6.x, this.p6.y);
             context.lineTo(this.p1.x, this.p1.y);
-            
-            
-            // for (const p of [this.p2, this.p3, this.p4, this.p5, this.p6, this.p1]) {
-            //     context.lineTo(p.x, p.y);
-            // }
 
             context.fill();
             context.strokeStyle = "black";

@@ -1,21 +1,21 @@
+import Circle from './circle';
 import * as utils from './figure-utils';
+import Rectangle from './rectangle';
 
 export default class Triangle {
-    static generate({width, height}, id) {
-        const minR = width / 30;
-        const maxR = width / 20;
+    static generate({ width, height }, { minW, maxW, minH, maxH }, speed = 1) {
+        const minR = Math.min(minW, minH);
+        const maxR = Math.max(maxW, maxH);
+
         const r = minR + Math.random() * (maxR - minR);
 
         const x = Math.random() * (width - maxR);
         const y = Math.random() * (height - maxR);
 
-        const minV = 2;
-        const maxV = 2;
-        const vx = minV + Math.random() * (maxV - minV);
-        const vy = minV + Math.random() * (maxV - minV);
+        const vx = Math.random() > 0.5 ? speed : -speed;
+        const vy = Math.random() > 0.5 ? speed : -speed;
 
         const fig = new Triangle(x, y, r);
-        fig.id = id;
         fig.vx = vx;
         fig.vy = vy;
 
@@ -101,28 +101,13 @@ export default class Triangle {
         return utils.pointInTriangle(point, this.p2, this.p3, this.p1);
     }
 
-    simpleCollisionsCheck(figures) {
-        for (const fig of figures) {
-            if (fig.isAlive && fig !== this && utils.intersects(this, fig)) {
-                // console.log({ this: JSON.stringify(this), fig: JSON.stringify(fig)})
-                this.collisions += 1;
-
-                this.vx *= -1;
-                this.vy *= -1;
-                // console.log({ this: JSON.stringify(this), fig: JSON.stringify(fig)})
-                console.log("")
-            }
-        }
+    range() {
+        return new Circle(this.x, this.y, this.r * 10);
     }
 
-    move(canvas, figures) {
-        if (this.isAlive) {
-            utils.checkWalls(this, canvas);
-            this.simpleCollisionsCheck(figures);
-
-            this.x += this.vx;
-            this.y += this.vy;
-        }
+    move() {
+        this.x += this.vx;
+        this.y += this.vy;
     }
 
     draw(context) {
@@ -132,7 +117,7 @@ export default class Triangle {
             context.moveTo(this.p2.x, this.p2.y);
             for (const p of [this.p3, this.p1, this.p2]) {
                 context.lineTo(p.x, p.y);
-            }    
+            }
             context.fill();
             context.strokeStyle = "black";
             context.lineWidth = 3;

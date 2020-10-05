@@ -1,4 +1,41 @@
+import Hexagon from "./hexagon";
+import Triangle from "./triangle";
+import Circle from './circle';
+
 export const FigTypes = { Rect: 0, Circle: 1, Triangle: 2, Hexagon: 3 };
+
+export function generateFigure({ width, height }, { minW, maxW, minH, maxH }, figType, speed = 1) {
+    const minR = Math.min(minW, minH);
+    const maxR = Math.min(maxW, maxH);
+    const r = minR + Math.random() * (maxR - minR);
+
+    const x = Math.random() * (width - maxR);
+    const y = Math.random() * (height - maxR);
+
+    const vx = Math.random() > 0.5 ? speed : -speed;
+    const vy = Math.random() > 0.5 ? speed : -speed;
+
+    let fig;
+    switch (figType) {
+        case FigTypes.Circle: {
+            fig = new Circle(x, y, r);
+            break;
+        }
+        case FigTypes.Triangle: {
+            fig = new Triangle(x, y, r);
+            break;
+        }
+        case FigTypes.Hexagon: {
+            fig = new Hexagon(x, y, r);
+            break;
+        }
+    }
+
+    fig.vx = vx;
+    fig.vy = vy;
+
+    return fig;
+}
 
 export function checkWalls(fig, { width, height }) {
     checkLeftWall(fig);
@@ -28,6 +65,29 @@ export function checkRightWall(fig, width) {
 export function checkBottomWall(fig, height) {
     if (fig.bottom >= height) {
         fig.vy *= -1;
+    }
+}
+
+export function checkCollisionsWithTree(fig, tree) {
+    const range = fig.range();
+    const candidates = tree.queryRange(range);
+    for (const p of candidates) {
+        const other = p.figure;
+        if (other !== fig && fig.intersects(other)) {
+            fig.collisions += 1;
+            fig.vx *= -1;
+            fig.vy *= -1;
+        }
+    }
+}
+
+export function checkCollisionsWithFigures(fig, figures) {
+    for (const other of figures) {
+        if (other.isAlive && other !== fig && intersects(fig, other)) {
+            fig.collisions += 1;
+            fig.vx *= -1;
+            fig.vy *= -1;
+        }
     }
 }
 
@@ -95,10 +155,44 @@ function rectWithCircle(r, c) {
 }
 
 function rectWithTriangle(r, t) {
+    for (const p of [t.p1, t.p2, t.p3]) {
+        if (r.contains(p)) {
+            return true;
+        }
+    }
+    const rectPts = [
+        { x: r.x, y: r.y }, 
+        { x: r.x + r.w, y: r.y }, 
+        { x: r.x, y: r.y + r.h }, 
+        { x: r.x + r.w, y: r.y + r.h }
+    ];
+    for (const p of rectPts) {
+        if (t.contains(p)) {
+            return true;
+        }
+    }
+    
     return false;
 }
 
 function rectWithHexagon(r, h) {
+    const rectPts = [
+        { x: r.x, y: r.y }, 
+        { x: r.x + r.w, y: r.y }, 
+        { x: r.x, y: r.y + r.h }, 
+        { x: r.x + r.w, y: r.y + r.h }
+    ];
+    for (const p of rectPts) {
+        if (t.contains(p)) {
+            return true;
+        }
+    }
+    for (const p of [h.p1, h.p2, h.p3, h.p4, h.p5, h.p6]) {
+        if (r.contains(p)) {
+            return true;
+        }
+    }
+
     return false;
 }
 
@@ -236,27 +330,6 @@ export function pointInTriangle(pt, v1, v2, v3) {
     return !(has_neg && has_pos);
 }
 
-export function pointInHexagon(pt, h) {
-    let x = Math.abs(pt.x - h.x);
-    let y = Math.abs(pt.y - h.y);
-
-    let p0 = { x: h.x, y: h.y };
-    let p1 = h.p1;
-    let p2 = h.p2;
-    let p3 = { x: h.p2.x, y: h.y };
-
-    let p_angle_01 = (p0.x - x) * (p1.y - y) - (p1.x - x) * (p0.y - y);
-    let p_angle_20 = (p2.x - x) * (p0.y - y) - (p0.x - x) * (p2.y - y);
-    let p_angle_03 = (p0.x - x) * (p3.y - y) - (p3.x - x) * (p0.y - y);
-    let p_angle_12 = (p1.x - x) * (p2.y - y) - (p2.x - x) * (p1.y - y);
-    let p_angle_32 = (p3.x - x) * (p2.y - y) - (p2.x - x) * (p3.y - y);
-
-    let is_inside_1 = (p_angle_01 * p_angle_12 >= 0) && (p_angle_12 * p_angle_20 >= 0);
-    let is_inside_2 = (p_angle_03 * p_angle_32 >= 0) && (p_angle_32 * p_angle_20 >= 0);
-
-    return is_inside_1 || is_inside_2;
-}
-
 export function lineIntersectsCircle(l, circle) {
     
     const a = l.p2.y - l.p1.y;
@@ -264,8 +337,6 @@ export function lineIntersectsCircle(l, circle) {
     const c = a * l.p1.x + b * l.p1.y;
     
     const d = Math.abs(a * circle.x + b * circle.y + c) / Math.sqrt(a*a + b*b);
-    // console.log("line", l);
-    // console.log("d", d);
     if (circle.r >= d) {
         let x = d;
         let y1 = Math.sqrt(circle.r*circle.r -d*d);
@@ -280,7 +351,6 @@ export function lineIntersectsCircle(l, circle) {
         if (minX <= x && x <= maxX &&
             ((minY <= y1 && y1 <= maxY) || 
             (minY <= y2 && y2 <= maxY))) {
-                // console.log("intersects")
                 return true;
             }
     }
@@ -308,4 +378,8 @@ export function linesIntersection(p1, p2, p3, p4) {
         let y = (a1 * c2 - a2 * c1) / det;
         return { x, y };
     }
+}
+
+export function pointsAreEqual(p1, p2) {
+    return p1.x === p2.x && p1.y === p2.y;
 }
