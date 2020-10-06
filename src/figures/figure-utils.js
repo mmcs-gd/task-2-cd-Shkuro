@@ -142,6 +142,36 @@ function clamp(val, min, max) {
 // на всякий случай еще вариант http://www.jeffreythompson.org/collision-detection/circle-rect.php
 
 function rectWithCircle(r, c) {
+    // circle contains rect
+    const rectPts = [
+        { x: r.x, y: r.y },
+        { x: r.x, y: r.y + r.h },
+        { x: r.x + r.w, y: r.y + r.h },
+        { x: r.x + r.w, y: r.y }
+    ];
+    if (c.contains(rectPts[0]) &&
+        c.contains(rectPts[1]) &&
+        c.contains(rectPts[2]) &&
+        c.contains(rectPts[3])
+    ) {
+        return true;
+    }
+
+    // rect contains circle
+    const circlePts = [
+        { x: c.left, y: c.y },
+        { x: c.x, y: c.top },
+        { x: c.right, y: c.y },
+        { x: c.x, y: c.bottom }
+    ];
+    if (r.contains(circlePts[0]) &&
+        r.contains(circlePts[1]) &&
+        r.contains(circlePts[2]) &&
+        r.contains(circlePts[3])
+    ) {
+        return true;
+    }
+
     // Find the closets point to the circle within the rect
     let closestX = clamp(c.x, r.x, r.x + r.w);
     let closestY = clamp(c.y, r.y, r.y + r.h);
@@ -150,100 +180,80 @@ function rectWithCircle(r, c) {
     let dx = c.x - closestX;
     let dy = c.y - closestY;
 
-    // if the distance is less than the circle's radius, an intersection occurs
-    return (dx * dx + dy * dy) < (c.r * c.r);
-}
-
-function rectWithTriangle(r, t) {
-    for (const p of [t.p1, t.p2, t.p3]) {
-        if (r.contains(p)) {
-            return true;
-        }
-    }
-    const rectPts = [
-        { x: r.x, y: r.y }, 
-        { x: r.x + r.w, y: r.y }, 
-        { x: r.x, y: r.y + r.h }, 
-        { x: r.x + r.w, y: r.y + r.h }
-    ];
-    for (const p of rectPts) {
-        if (t.contains(p)) {
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-function rectWithHexagon(r, h) {
-    const rectPts = [
-        { x: r.x, y: r.y }, 
-        { x: r.x + r.w, y: r.y }, 
-        { x: r.x, y: r.y + r.h }, 
-        { x: r.x + r.w, y: r.y + r.h }
-    ];
-    for (const p of rectPts) {
-        if (t.contains(p)) {
-            return true;
-        }
-    }
-    for (const p of [h.p1, h.p2, h.p3, h.p4, h.p5, h.p6]) {
-        if (r.contains(p)) {
-            return true;
-        }
-    }
-
-    return false;
+    return ((dx * dx + dy * dy) < (c.r * c.r));
 }
 
 function circleWithTriangle(c, t) {
+    // circle contains triangle's point
     for (const p of [t.p1, t.p2, t.p3]) {
         if (c.contains(p)) {
             return true;
         }
     }
-    for (const l of [t.edge12, t.edge23, t.edge31]) {
-        if (lineIntersectsCircle(l, c)) {
+
+    // triangle contains circle's point
+    const circlePts = [
+        { x: c.left, y: c.y },
+        { x: c.x, y: c.top },
+        { x: c.right, y: c.y },
+        { x: c.x, y: c.bottom }
+    ];
+    for (const p of circlePts) {
+        if (t.contains(p)) {
             return true;
         }
     }
+
     // circle is inside triangle
-    if (t.contains({ x: c.x, y: c.y}) && c.r < t.r) {
+    if (t.contains({ x: c.x, y: c.y }) && c.r < t.r) {
         return true;
     }
     return false;
 }
 
 function circleWithHexagon(c, h) {
+    // circle contains hexagons's point
     for (const p of [h.p1, h.p2, h.p3, h.p4, h.p5, h.p6]) {
         if (c.contains(p)) {
             return true;
         }
     }
-    for (const l of [h.edge12, h.edge23, h.edge34, h.edge45, h.edge56, h.edge61]) {
-        if (lineIntersectsCircle(l, c)) {
+
+    // triangle contains circle's point
+    const circlePts = [
+        { x: c.left, y: c.y },
+        { x: c.x, y: c.top },
+        { x: c.right, y: c.y },
+        { x: c.x, y: c.bottom }
+    ];
+    for (const p of circlePts) {
+        if (h.contains(p)) {
             return true;
         }
     }
+
     // circle is inside hexagon
-    if (h.contains({ x: c.x, y: c.y}) && c.r < h.r) {
+    if (h.contains({ x: c.x, y: c.y }) && c.r < h.r) {
         return true;
     }
     return false;
 }
 
 function triangleWithHexagon(t, h) {
+    // hexagon contains triangle's point
     for (const p of [t.p1, t.p2, t.p3]) {
         if (h.contains(p)) {
             return true;
         }
     }
+
+    // triangle contains hexagon's point
     for (const p of [h.p1, h.p2, h.p3, h.p4, h.p5, h.p6]) {
         if (t.contains(p)) {
             return true;
         }
     }
-    
+
     return false;
 }
 
@@ -256,12 +266,6 @@ export function intersects(fig1, fig2) {
                 }
                 case FigTypes.Circle: {
                     return rectWithCircle(fig1, fig2);
-                }
-                case FigTypes.Triangle: {
-                    return rectWithTriangle(fig1, fig2);
-                }
-                case FigTypes.Hexagon: {
-                    return rectWithHexagon(fig1, fig2);
                 }
             }
         }
@@ -283,9 +287,6 @@ export function intersects(fig1, fig2) {
         }
         case FigTypes.Triangle: {
             switch (fig2.type) {
-                case FigTypes.Rect: {
-                    return rectWithTriangle(fig2, fig1);
-                }
                 case FigTypes.Circle: {
                     return circleWithTriangle(fig2, fig1);
                 }
@@ -299,9 +300,6 @@ export function intersects(fig1, fig2) {
         }
         case FigTypes.Hexagon: {
             switch (fig2.type) {
-                case FigTypes.Rect: {
-                    return rectWithHexagon(fig2, fig1);
-                }
                 case FigTypes.Circle: {
                     return circleWithHexagon(fig2, fig1);
                 }
@@ -328,56 +326,6 @@ export function pointInTriangle(pt, v1, v2, v3) {
     const has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
 
     return !(has_neg && has_pos);
-}
-
-export function lineIntersectsCircle(l, circle) {
-    
-    const a = l.p2.y - l.p1.y;
-    const b = l.p1.x - l.p2.x;
-    const c = a * l.p1.x + b * l.p1.y;
-    
-    const d = Math.abs(a * circle.x + b * circle.y + c) / Math.sqrt(a*a + b*b);
-    if (circle.r >= d) {
-        let x = d;
-        let y1 = Math.sqrt(circle.r*circle.r -d*d);
-        let y2 = -y1;
-
-        const minX = Math.min(l.p1.x, l.p2.x);
-        const maxX = Math.min(l.p1.x, l.p2.x);
-        const minY = Math.min(l.p1.y, l.p2.y);
-        const maxY = Math.min(l.p1.y, l.p2.y);
-        
-
-        if (minX <= x && x <= maxX &&
-            ((minY <= y1 && y1 <= maxY) || 
-            (minY <= y2 && y2 <= maxY))) {
-                return true;
-            }
-    }
-    return false;
-}
-
-export function intersectLines(l1, l2) {
-    return linesIntersection(l1.p1, l1.p2, l2.p1, l2.p2);
-}
-
-export function linesIntersection(p1, p2, p3, p4) {
-    const a1 = p2.y - p1.y;
-    const b1 = p1.x - p2.x;
-    const c1 = a1 * p1.x + b1 * p1.y;
-
-    const a2 = p4.y - p3.y;
-    const b2 = p3.x - p4.x;
-    const c2 = a2 * p3.x + b2 * p3.y;
-
-    const det = a1 * b2 - a2 * b1;
-    if (det === 0) {
-        return null;
-    } else {
-        let x = (b2 * c1 - b1 * c2) / det;
-        let y = (a1 * c2 - a2 * c1) / det;
-        return { x, y };
-    }
 }
 
 export function pointsAreEqual(p1, p2) {

@@ -55,11 +55,6 @@ export default class QuadTree {
     // find points in given circle range
     queryRange(range, found = []) {
         const { _boundary: bound, _points: pts, _children: children } = this;
-        // if (found.length > 0) {
-        //     console.log("query", { rect, found })
-        // }
-        // console.log("rect", rect)
-        // console.log("found", rect)
         
         if (!range.intersects(bound)) {
             return found;
@@ -67,7 +62,6 @@ export default class QuadTree {
 
         for (const p of pts) {
             if (range.contains(p)) {
-                // console.log("contains point", p);
                 found.push(p);
             }
         }

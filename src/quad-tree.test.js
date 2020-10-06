@@ -1,5 +1,7 @@
+import Circle from './figures/circle'
+import { checkCollisionsWithTree } from './figures/figure-utils'
 import Rectangle from './figures/rectangle'
-import QuadTree from './quad-tree'
+import QuadTree, { Point } from './quad-tree'
 
 describe('QuadTree contructor', () => {
     it('should be empty in the initial state', () => {
@@ -147,17 +149,60 @@ describe("QuadTree (cap = 4)", () => {
 
     it('should query correctly for Rectangle(0,0,25,25)', () => {
         const found = tree.queryRange(new Rectangle(0,0,25,25));
-        console.log(found);
         expect(found).toContainEqual({ x: 10, y: 10 });
         expect(found).toContainEqual({ x: 15, y: 20 });
     })
 
     it('should query correctly for Rectangle(5,15,35,20)', () => {
         const found = tree.queryRange(new Rectangle(5,15,35,20));
-        console.log(found);
         expect(found).toContainEqual({ x: 15, y: 20 });
         expect(found).toContainEqual({ x: 30, y: 20 });
         expect(found).toContainEqual({ x: 10, y: 30 });
         expect(found).toContainEqual({ x: 35, y: 30 });
+    })
+})
+
+describe("Tree with figures", () => {
+    let tree;
+    let figures;
+    beforeEach(() => {
+        const c1 = new Circle(20,20,7);
+        const c2 = new Circle(80,40,9);
+        const c3 = new Circle(90,50,6);
+        const c4 = new Circle(70,30,3);
+        
+        figures = [c1, c2,c3,c4];
+
+        const boundary = new Rectangle(0, 0, 100, 100);
+        tree = new QuadTree(boundary, 1);
+
+        tree.insert(new Point(c1.x, c1.y, c1));
+        tree.insert(new Point(c2.x, c2.y, c2));
+        tree.insert(new Point(c3.x, c3.y, c3));
+        tree.insert(new Point(c4.x, c4.y, c4));
+    })
+
+    it('should find candidates correctly', () => {
+        const range = figures[1].range();
+        const found = tree.queryRange(range);
+        // including testing figure
+        expect(found.length).toBe(3);
+    })
+
+    it('should find candidates correctly [2]', () => {
+        const range = figures[2].range();
+        const found = tree.queryRange(range);
+        // including the testing figure
+        expect(found.length).toBe(2);
+    })
+
+    it('should calculate collisions correctly', () => {
+        for (const f of figures) {
+            checkCollisionsWithTree(f, tree);
+        }
+        expect(figures[0].collisions).toBe(0);
+        expect(figures[1].collisions).toBe(1);
+        expect(figures[2].collisions).toBe(1);
+        expect(figures[0].collisions).toBe(0);        
     })
 })

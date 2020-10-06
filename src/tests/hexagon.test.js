@@ -1,4 +1,4 @@
-import { FigTypes } from '../figures/figure-utils';
+import * as utils from '../figures/figure-utils';
 import Hexagon from '../figures/hexagon';
 
 describe('Hexagon getters', () => {
@@ -52,7 +52,15 @@ describe('Hexagon getters', () => {
         expect(h.isAlive).toBeTruthy();
         h.collisions += 1;
         expect(h.isAlive).toBeFalsy();
-    })    
+    })
+
+    it("should return correct range", () => {
+        const h = new Hexagon(0,0,6);
+        const r = h.range();
+        expect(r.x).toBe(h.x);
+        expect(r.y).toBe(h.y);
+        expect(r.r).toBe(h.r * 3);        
+    })
 })
 
 describe('Hexagon.contains()', () => {
@@ -157,13 +165,13 @@ describe('Hexagon.simpleCollisionsCheck()', () => {
 
     it('should increase collisions if hexagon intersects other hexagon', () => {
         const otherH = new Hexagon(4,0,6);
-        h.simpleCollisionsCheck([otherH]);
+        utils.checkCollisionsWithFigures(h, [otherH]);
         expect(h.collisions).toBe(1);        
     })
 
     it('should not increase collisions if hexagons are not intersected', () => {
         const otherH = new Hexagon(6,6,2);
-        h.simpleCollisionsCheck([otherH]);
+        utils.checkCollisionsWithFigures(h, [otherH]);
         expect(h.collisions).toBe(0);        
     })    
 })
@@ -173,7 +181,7 @@ describe('Hexagon.move()', () => {
         const h = new Hexagon(50,50,4);
         h.vx = 1;
         h.vy = 1;
-        h.move({width: 100, height: 100}, []);
+        h.move();
         expect(h.x).toBe(51);
         expect(h.y).toBe(51);
     })
@@ -182,7 +190,7 @@ describe('Hexagon.move()', () => {
         const h = new Hexagon(0,50,4);
         h.vx = -1;
         h.vy = 0;
-        h.move({width: 100, height: 100}, []);
+        utils.checkWalls(h, {width: 100, height: 100});
         expect(h.vx).toBe(1);
         expect(h.vy).toBe(0);
     })
@@ -191,7 +199,7 @@ describe('Hexagon.move()', () => {
         const h = new Hexagon(100,50,4);
         h.vx = 1;
         h.vy = 0;
-        h.move({width: 100, height: 100}, []);
+        utils.checkWalls(h, {width: 100, height: 100});
         expect(h.vx).toBe(-1);
         expect(h.vy).toBe(0);
     })
@@ -200,7 +208,7 @@ describe('Hexagon.move()', () => {
         const h = new Hexagon(50,0,4);
         h.vx = 0;
         h.vy = -1;
-        h.move({width: 100, height: 100}, []);
+        utils.checkWalls(h, {width: 100, height: 100});
         expect(h.vx).toBe(0);
         expect(h.vy).toBe(1);
     })
@@ -209,7 +217,7 @@ describe('Hexagon.move()', () => {
         const h = new Hexagon(50,100,4);
         h.vx = 0;
         h.vy = 1;
-        h.move({width: 100, height: 100}, []);
+        utils.checkWalls(h, {width: 100, height: 100});
         expect(h.vx).toBe(0);
         expect(h.vy).toBe(-1);
     })
@@ -219,7 +227,7 @@ describe('Hexagon.move()', () => {
         h.collisions = 3;
         h.vx = 1;
         h.vy = 1;
-        h.move({width: 100, height: 100}, []);
+        utils.checkWalls(h, {width: 100, height: 100});
         expect(h.x).toBe(0);
         expect(h.y).toBe(0);
     })
@@ -228,12 +236,18 @@ describe('Hexagon.move()', () => {
 describe('Hexagon generation', () => {
     it('should generate figure correctly', () => {
         const canvas = { width: 100, height: 100 };
-        const h = Hexagon.generate(canvas);
+        const settings = {
+            minW: canvas.width / 100,
+            maxW: canvas.width / 50,
+            minH: canvas.height / 100,
+            maxH: canvas.height / 50
+        };
+        const h = utils.generateFigure(canvas, settings, utils.FigTypes.Hexagon);
         expect(h.x).toBeGreaterThan(0);
         expect(h.x).toBeLessThan(canvas.width);
         
         expect(h.y).toBeGreaterThan(0);
         expect(h.y).toBeLessThan(canvas.height);
-        expect(h.type).toBe(FigTypes.Hexagon);
+        expect(h.type).toBe(utils.FigTypes.Hexagon);
     })
 })

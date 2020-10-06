@@ -3,24 +3,6 @@ import * as utils from './figure-utils';
 import Rectangle from './rectangle';
 
 export default class Hexagon {
-    static generate({ width, height }, { minW, maxW, minH, maxH }, speed = 1) {
-        const minR = Math.min(minW, minH);
-        const maxR = Math.max(maxW, maxH);
-        const r = minR + Math.random() * (maxR - minR);
-
-        const x = Math.random() * (width - maxR);
-        const y = Math.random() * (height - maxR);
-
-        const vx = Math.random() > 0.5 ? speed : -speed;
-        const vy = Math.random() > 0.5 ? speed : -speed;
-
-        const fig = new Hexagon(x, y, r);
-        fig.vx = vx;
-        fig.vy = vy;
-
-        return fig;
-    }
-
     // (x,y) - center of the circumscribed circle
     // r - radius of the circumscribed circle
     constructor(x, y, r, colors = ["green", "yellow", "red"]) {
@@ -150,15 +132,6 @@ export default class Hexagon {
             this.classify(point, this.p6, this.p1);
     }
 
-    isFullyInsideRect(rect) {
-        return rect.contains(this.p1) &&
-            rect.contains(this.p2) &&
-            rect.contains(this.p3) &&
-            rect.contains(this.p4) &&
-            rect.contains(this.p5) &&
-            rect.contains(this.p6);
-    }
-
     range() {
         return new Circle(this.x, this.y, this.r * 3);
     }
@@ -168,6 +141,7 @@ export default class Hexagon {
         this.y += this.vy;
     }
 
+    /* istanbul ignore next */
     draw(context) {
         if (this.isAlive) {
             context.beginPath();

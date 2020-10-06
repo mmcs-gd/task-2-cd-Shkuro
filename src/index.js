@@ -32,12 +32,16 @@ function drawFigures(context) {
 function update(tick) {
     counter.innerText = gameState.figures.length;
 
+    //#region withTree
     const boundary = new Rectangle(0, 0, canvas.width, canvas.height);
     const tree = new QuadTree(boundary);
     gameState.figures.forEach(f => tree.insert(new Point(f.x, f.y, f)));
     moveFigures(tree);
+    //#endregion
 
+    //#region noTree
     // moveFigures();
+    //#endregion
 
 }
 
@@ -47,10 +51,7 @@ function cleareFigures() {
     }
 }
 
-function moveFigures(tree) {
-    // for (let fig of gameState.figures) {
-    //     fig.simpleCollisionsCheck(gameState.figures);
-    // }
+function moveFigures(tree = null) {
     for (let fig of gameState.figures) {
         utils.checkWalls(fig, canvas);
         if (tree) {
@@ -58,13 +59,11 @@ function moveFigures(tree) {
         } else {
             utils.checkCollisionsWithFigures(fig, gameState.figures);
         }
-        // fig.move(canvas, gameState.figures, tree);
     }
     cleareFigures();
     for (let fig of gameState.figures) {
         fig.x += fig.vx;
         fig.y += fig.vy;
-        
     }
 }
 
@@ -102,14 +101,25 @@ function setup() {
         maxH: canvas.height / 100
     };
 
-    for (let i = 0; i < 600; ++i) {
+    const N = {
+        noTree: {
+            noHex: 200,
+            withHex: 100
+        },
+        withTree: {
+            noHex: 500,
+            withHex: 400
+        }
+    };
+
+    for (let i = 0; i < N.withTree.withHex; ++i) {
         const r = Math.random();
         if (r < 0.3) {
             gameState.figures.push(utils.generateFigure(canvas, settings, utils.FigTypes.Circle, 0.5));
         } else if (r < 0.6) {
             gameState.figures.push(utils.generateFigure(canvas, settings, utils.FigTypes.Triangle, 0.5));
         } else {
-            gameState.figures.push(utils.generateFigure(canvas, settings, utils.FigTypes.Circle, 0.5));
+            gameState.figures.push(utils.generateFigure(canvas, settings, utils.FigTypes.Hexagon, 0.5));
         }
     }
 }

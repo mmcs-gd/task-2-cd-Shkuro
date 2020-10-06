@@ -1,4 +1,4 @@
-import { FigTypes } from '../figures/figure-utils';
+import * as utils from '../figures/figure-utils';
 import Triangle from '../figures/triangle';
 
 describe('Triangle getters', () => {
@@ -40,7 +40,15 @@ describe('Triangle getters', () => {
         expect(t.isAlive).toBeTruthy();
         t.collisions += 1;
         expect(t.isAlive).toBeFalsy();
-    });
+    })
+
+    it("should return correct range", () => {
+        const t = new Triangle(0,0,6);
+        const r = t.range();
+        expect(r.x).toBe(t.x);
+        expect(r.y).toBe(t.y);
+        expect(r.r).toBe(t.r * 3);        
+    })
 })
 
 describe("Triangle.contains()", () => {
@@ -125,6 +133,17 @@ describe("Triangle.intersects()", () => {
         //  /________\    
     })
 
+    it('should return true if one triangle contains other [2]', () => {
+        const otherT = new Triangle(0, 0, 10);
+        expect(t.intersects(otherT)).toBeTruthy();
+
+        //      /\
+        //     /  \
+        //    / /\ \
+        //   / /__\ \
+        //  /________\    
+    })
+
     it('should return false if triangles are not intersected', () => {
         const otherT = new Triangle(7, 7, 3);
         expect(t.intersects(otherT)).toBeFalsy();
@@ -139,13 +158,14 @@ describe('Triangle.simpleCollisionsCheck()', () => {
 
     it('should increase collisions if triangle intersects other triangle', () => {
         const otherT = new Triangle(4.5, -0.5, 4);
-        t.simpleCollisionsCheck([otherT]);
+        
+        utils.checkCollisionsWithFigures(t, [otherT]);
         expect(t.collisions).toBe(1);        
     })
 
     it('should not increase collisions if triangle are not intersected', () => {
         const otherT = new Triangle(7, 7, 3);
-        t.simpleCollisionsCheck([otherT]);
+        utils.checkCollisionsWithFigures(t, [otherT]);
         expect(t.collisions).toBe(0);
     })  
 })
@@ -155,7 +175,7 @@ describe('Triangle.move()', () => {
         const t = new Triangle(50,50,4);
         t.vx = 1;
         t.vy = 1;
-        t.move({width: 100, height: 100}, []);
+        t.move();
         expect(t.x).toBe(51);
         expect(t.y).toBe(51);
     })
@@ -164,7 +184,7 @@ describe('Triangle.move()', () => {
         const t = new Triangle(0,50,4);
         t.vx = -1;
         t.vy = 0;
-        t.move({width: 100, height: 100}, []);
+        utils.checkWalls(t, {width: 100, height: 100});
         expect(t.vx).toBe(1);
         expect(t.vy).toBe(0);
     })
@@ -173,7 +193,7 @@ describe('Triangle.move()', () => {
         const t = new Triangle(100,50,4);
         t.vx = 1;
         t.vy = 0;
-        t.move({width: 100, height: 100}, []);
+        utils.checkWalls(t, {width: 100, height: 100});
         expect(t.vx).toBe(-1);
         expect(t.vy).toBe(0);
     })
@@ -182,7 +202,7 @@ describe('Triangle.move()', () => {
         const t = new Triangle(50,0,4);
         t.vx = 0;
         t.vy = -1;
-        t.move({width: 100, height: 100}, []);
+        utils.checkWalls(t, {width: 100, height: 100});
         expect(t.vx).toBe(0);
         expect(t.vy).toBe(1);
     })
@@ -191,7 +211,7 @@ describe('Triangle.move()', () => {
         const t = new Triangle(50,100,4);
         t.vx = 0;
         t.vy = 1;
-        t.move({width: 100, height: 100}, []);
+        utils.checkWalls(t, {width: 100, height: 100});
         expect(t.vx).toBe(0);
         expect(t.vy).toBe(-1);
     })
@@ -201,7 +221,7 @@ describe('Triangle.move()', () => {
         t.collisions = 3;
         t.vx = 1;
         t.vy = 1;
-        t.move({width: 100, height: 100}, []);
+        utils.checkWalls(t, {width: 100, height: 100});
         expect(t.x).toBe(0);
         expect(t.y).toBe(0);
     })
@@ -210,12 +230,19 @@ describe('Triangle.move()', () => {
 describe('Triangle generation', () => {
     it('should generate figure correctly', () => {
         const canvas = { width: 100, height: 100 };
-        const t = Triangle.generate(canvas);
+        const settings = {
+            minW: canvas.width / 100,
+            maxW: canvas.width / 50,
+            minH: canvas.height / 100,
+            maxH: canvas.height / 50
+        };
+        const t = utils.generateFigure(canvas, settings, utils.FigTypes.Triangle);
         expect(t.x).toBeGreaterThan(0);
         expect(t.x).toBeLessThan(canvas.width);
         
         expect(t.y).toBeGreaterThan(0);
         expect(t.y).toBeLessThan(canvas.height);
-        expect(t.type).toBe(FigTypes.Triangle);
+        expect(t.type).toBe(utils.FigTypes.Triangle);
     })
 })
+

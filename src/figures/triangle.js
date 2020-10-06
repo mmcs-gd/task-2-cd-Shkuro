@@ -3,25 +3,6 @@ import * as utils from './figure-utils';
 import Rectangle from './rectangle';
 
 export default class Triangle {
-    static generate({ width, height }, { minW, maxW, minH, maxH }, speed = 1) {
-        const minR = Math.min(minW, minH);
-        const maxR = Math.max(maxW, maxH);
-
-        const r = minR + Math.random() * (maxR - minR);
-
-        const x = Math.random() * (width - maxR);
-        const y = Math.random() * (height - maxR);
-
-        const vx = Math.random() > 0.5 ? speed : -speed;
-        const vy = Math.random() > 0.5 ? speed : -speed;
-
-        const fig = new Triangle(x, y, r);
-        fig.vx = vx;
-        fig.vy = vy;
-
-        return fig;
-    }
-
     // (x,y) - center of the circumscribed circle
     // r - radius of the circumscribed circle
     constructor(x, y, r, colors = ["green", "yellow", "red"]) {
@@ -102,7 +83,7 @@ export default class Triangle {
     }
 
     range() {
-        return new Circle(this.x, this.y, this.r * 10);
+        return new Circle(this.x, this.y, this.r * 3);
     }
 
     move() {
@@ -110,6 +91,7 @@ export default class Triangle {
         this.y += this.vy;
     }
 
+    /* istanbul ignore next */
     draw(context) {
         if (this.isAlive) {
             context.beginPath();
